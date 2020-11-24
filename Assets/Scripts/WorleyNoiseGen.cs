@@ -7,13 +7,17 @@ using UnityEngine;
 public class WorleyNoiseGen : MonoBehaviour
 {
     // Start is called before the first frame update
-    public int WorleyResolution = 1;
+    public int WorleyResolutionLv1 = 1;
+    public int WorleyResolutionLv2 = 1;
+    public int WorleyResolutionLv3 = 1;
 
     public ComputeShader worleyCompute;
 
     public Shader test_shader;
 
-    public float depth;
+    public float frequency;
+    public Vector3 offset;
+    public Vector3 scale;
 
     readonly int resolution = 256;
     private RenderTexture rt;
@@ -28,6 +32,7 @@ public class WorleyNoiseGen : MonoBehaviour
         rt = new RenderTexture(resolution, resolution, 0);
         rt.graphicsFormat = format;
         rt.enableRandomWrite = true;
+        rt.useMipMap = false;
         rt.volumeDepth = resolution;
         rt.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
         rt.wrapMode = TextureWrapMode.Repeat;
@@ -37,17 +42,6 @@ public class WorleyNoiseGen : MonoBehaviour
         TextureSize = rt.width;
         numThreadGroups = Mathf.CeilToInt(TextureSize / 8f);
 
-        var worley_points = CreateWorleyPoints(prng, WorleyResolution);
-        var buffer = new ComputeBuffer(worley_points.Length, sizeof(float) * 3, ComputeBufferType.Structured);
-        buffer.SetData(worley_points);
-
-        worleyCompute.SetBuffer(0, "WorleyPoints", buffer);
-        worleyCompute.SetInt("resolution", TextureSize);
-        worleyCompute.SetInt("numCells", WorleyResolution);
-        worleyCompute.SetTexture(0, "Result", rt);
-        worleyCompute.Dispatch(0, numThreadGroups, numThreadGroups, numThreadGroups);
-
-        buffer.Release();
     }
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
@@ -56,8 +50,48 @@ public class WorleyNoiseGen : MonoBehaviour
         {
             mat = new Material(test_shader);
         }
+        var worley_points_lv1 = CreateWorleyPoints(prng, WorleyResolutionLv1);
+        var worley_buffer_lv1 = new ComputeBuffer(worley_points_lv1.Length, sizeof(float) * 3, ComputeBufferType.Structured);
+        worley_buffer_lv1.SetData(worley_points_lv1);
+
+        var worley_points_lv2 = CreateWorleyPoints(prng, WorleyResolutionLv2);
+        var worley_buffer_lv2 = new ComputeBuffer(worley_points_lv2.Length, sizeof(float) * 3, ComputeBufferType.Structured);
+        worley_buffer_lv2.SetData(worley_points_lv2);
+
+        var worley_points_lv3 = CreateWorleyPoints(prng, WorleyResolutionLv3);
+        var worley_buffer_lv3 = new ComputeBuffer(worley_points_lv3.Length, sizeof(float) * 3, ComputeBufferType.Structured);
+        worley_buffer_lv3.SetData(worley_points_lv3);
+
+
+        var minMaxData = new int[] { int.MaxValue, 0 };
+        var minMaxBuffer = new ComputeBuffer(minMaxData.Length, sizeof(int), ComputeBufferType.Structured);
+        minMaxBuffer.SetData(minMaxData);
+
+        worleyCompute.SetBuffer(0, "WorleyPointsLv1", worley_buffer_lv1);
+        worleyCompute.SetBuffer(0, "WorleyPointsLv2", worley_buffer_lv2);
+        worleyCompute.SetBuffer(0, "WorleyPointsLv3", worley_buffer_lv3);
+        worleyCompute.SetBuffer(0, "minMaxBuffer", minMaxBuffer);
+        worleyCompute.SetInt("numCellsLv1", WorleyResolutionLv1);
+        worleyCompute.SetInt("numCellsLv2", WorleyResolutionLv2);
+        worleyCompute.SetInt("numCellsLv3", WorleyResolutionLv3);
+        worleyCompute.SetInt("resolution", TextureSize);
+        worleyCompute.SetFloat("frequency", frequency);
+        worleyCompute.SetTexture(0, "Result", rt);
+        worleyCompute.Dispatch(0, numThreadGroups, numThreadGroups, numThreadGroups);
+
+        worley_buffer_lv1.Release();
+        worley_buffer_lv2.Release();
+        worley_buffer_lv3.Release();
+
+        worleyCompute.SetBuffer(1, "minMaxBuffer", minMaxBuffer);
+        worleyCompute.SetTexture(1, "Result", rt);
+        worleyCompute.Dispatch(1, numThreadGroups, numThreadGroups, numThreadGroups);
+
+        minMaxBuffer.Release();
+
         mat.SetTexture("_NoiseTex", rt);
-        mat.SetFloat("_depth_lv", depth);
+        mat.SetVector("_sample_offset", offset);
+        mat.SetVector("_scale", scale);
         Graphics.Blit(source, destination, mat);
     }
 

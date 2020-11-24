@@ -309,54 +309,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b0ac920bf36a0942a33396d99a6adf0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WorleyResolution: 4
+  WorleyResolutionLv1: 10
+  WorleyResolutionLv2: 20
+  WorleyResolutionLv3: 30
   worleyCompute: {fileID: 7200000, guid: bdac5e038b9f3df428ac4e70a733e7e3, type: 3}
   test_shader: {fileID: 4800000, guid: 0b060c303efdec9458c6111efffd26a1, type: 3}
-  depth: 0
---- !u!1 &1308488914
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1308488916}
-  - component: {fileID: 1308488915}
-  m_Layer: 0
-  m_Name: Test
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1308488915
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1308488914}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0b0ac920bf36a0942a33396d99a6adf0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  WorleyResolution: 4
-  worleyCompute: {fileID: 7200000, guid: bdac5e038b9f3df428ac4e70a733e7e3, type: 3}
-  test_shader: {fileID: 0}
-  depth: 0
---- !u!4 &1308488916
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1308488914}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  frequency: 5
+  offset: {x: 0, y: 0, z: 0}
+  scale: {x: 1, y: 1, z: 1}

@@ -32,7 +32,8 @@
             };
 
             sampler3D _NoiseTex;
-            float _depth_lv;
+            float3 _sample_offset;
+            float3 _scale;
             float4 _NoiseTex_ST;
 
             v2f vert (appdata v)
@@ -47,9 +48,9 @@
             fixed4 frag(v2f i) : SV_Target
             {
                 // sample the texture
-                float3 sample_pos = float3(i.uv, _depth_lv);
+                float3 sample_pos = _scale * float3(i.uv + _sample_offset.xy, _sample_offset.z);
                 fixed4 col = tex3D(_NoiseTex, sample_pos);
-                return col;
+                return 1-col;
             }
             ENDCG
         }

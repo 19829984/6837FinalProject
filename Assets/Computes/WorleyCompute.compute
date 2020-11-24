@@ -1,13 +1,21 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSWorley
+#pragma kernel CSWorleyNormalize
 static const int numThreads = 8;
+static const int minMaxAccuracy = 10000000;
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
 RWTexture3D<float4> Result;
 
 int resolution;
-StructuredBuffer<float3> WorleyPoints;
-int numCells;
+StructuredBuffer<float3> WorleyPointsLv1;
+StructuredBuffer<float3> WorleyPointsLv2;
+StructuredBuffer<float3> WorleyPointsLv3;
+int numCellsLv1;
+int numCellsLv2;
+int numCellsLv3;
+float frequency;
+RWStructuredBuffer<int> minMaxBuffer;
 
 static const int3 offsets[] =
 {
@@ -89,6 +97,28 @@ float sampleWorley(StructuredBuffer<float3> points, int numCells, float3 sampleP
 void CSWorley(uint3 id : SV_DispatchThreadID)
 {
     float3 pos = id / (float)resolution;
-    float sample_result = sampleWorley(WorleyPoints, numCells, pos);
-    Result[id] = sample_result;
+    float sample_result_lv1 = sampleWorley(WorleyPointsLv1, numCellsLv1, pos);
+    float sample_result_lv2 = sampleWorley(WorleyPointsLv2, numCellsLv2, pos);
+    float sample_result_lv3 = sampleWorley(WorleyPointsLv3, numCellsLv3, pos);
+
+    float sum = sample_result_lv1 + frequency * sample_result_lv2 + sample_result_lv3 * frequency * frequency;
+    float max_val = 1 + frequency + frequency * frequency;
+
+    //Clamp values
+    sum /= max_val;
+
+    int val = (int)(sum * minMaxAccuracy);
+    InterlockedMin(minMaxBuffer[0], val); //Keep track of min and max across all pixels upon first render
+    InterlockedMax(minMaxBuffer[1], val);
+
+    Result[id] = sum;
+}
+
+[numthreads(numThreads, numThreads, numThreads)]
+void CSWorleyNormalize(uint3 id : SV_DispatchThreadID) {
+    float minVal = (float)minMaxBuffer[0] / minMaxAccuracy; //Use min and max values recorded from first render to normalize
+    float maxVal = (float)minMaxBuffer[1] / minMaxAccuracy;
+    float4 normalizedVal = (Result[id] - minVal) / (maxVal - minVal);
+
+    Result[id] = normalizedVal;
 }
