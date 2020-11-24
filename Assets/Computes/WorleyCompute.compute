@@ -1,0 +1,94 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSWorley
+static const int numThreads = 8;
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture3D<float4> Result;
+
+int resolution;
+StructuredBuffer<float3> WorleyPoints;
+int numCells;
+
+static const int3 offsets[] =
+{
+    // centre
+    int3(0,0,0),
+    // front face
+    int3(0,0,1),
+    int3(-1,1,1),
+    int3(-1,0,1),
+    int3(-1,-1,1),
+    int3(0,1,1),
+    int3(0,-1,1),
+    int3(1,1,1),
+    int3(1,0,1),
+    int3(1,-1,1),
+    // back face
+    int3(0,0,-1),
+    int3(-1,1,-1),
+    int3(-1,0,-1),
+    int3(-1,-1,-1),
+    int3(0,1,-1),
+    int3(0,-1,-1),
+    int3(1,1,-1),
+    int3(1,0,-1),
+    int3(1,-1,-1),
+    // ring around centre
+    int3(-1,1,0),
+    int3(-1,0,0),
+    int3(-1,-1,0),
+    int3(0,1,0),
+    int3(0,-1,0),
+    int3(1,1,0),
+    int3(1,0,0),
+    int3(1,-1,0)
+};
+
+float maxComponent(float3 vec) {
+    return max(vec.x, max(vec.y, vec.z));
+}
+
+float minComponent(float3 vec) {
+    return min(vec.x, min(vec.y, vec.z));
+}
+
+float sampleWorley(StructuredBuffer<float3> points, int numCells, float3 samplePos) {
+    float min_dist_sqr = 1;
+    int3 cell_id = floor(samplePos * numCells);
+
+    for (int adjCellOffsetIndx = 0; adjCellOffsetIndx < 27; adjCellOffsetIndx++)
+    {
+       int3 adj_cell_id = cell_id + offsets[adjCellOffsetIndx];
+
+        if (minComponent(adj_cell_id) == -1 || maxComponent(adj_cell_id) == numCells) //We wrap around if adjacent cell is outside of our range
+        {
+            int3 w_cell_id = (adj_cell_id + numCells) % (uint3)numCells;
+
+            int wrapped_cell_index = w_cell_id.x + numCells * (w_cell_id.y + w_cell_id.z * numCells);
+            float3 wrapped_point = points[wrapped_cell_index];
+
+            for (int wrapOffsetIndex = 0; wrapOffsetIndex < 27; wrapOffsetIndex++) //Try all offsets to find true distance of the wrapped point
+            {
+                float3 vec_to_sample = samplePos - (wrapped_point + offsets[wrapOffsetIndex]);
+                min_dist_sqr = min(min_dist_sqr, dot(vec_to_sample, vec_to_sample));
+            }
+        }
+        else //No need to wrap
+        {
+            int adj_cell_index = adj_cell_id.x + numCells * (adj_cell_id.y + adj_cell_id.z * numCells);
+            float3 adj_point = points[adj_cell_index];
+            float3 vec_to_sample = samplePos - adj_point;
+            min_dist_sqr = min(min_dist_sqr, dot(vec_to_sample, vec_to_sample));
+        }
+    }
+
+    return sqrt(min_dist_sqr);
+}
+
+[numthreads(numThreads, numThreads, numThreads)]
+void CSWorley(uint3 id : SV_DispatchThreadID)
+{
+    float3 pos = id / (float)resolution;
+    float sample_result = sampleWorley(WorleyPoints, numCells, pos);
+    Result[id] = sample_result;
+}
