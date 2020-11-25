@@ -5,9 +5,13 @@ using UnityEngine;
 [ExecuteInEditMode, ImageEffectAllowedInSceneView]
 public class CloudRenderer : MonoBehaviour
 {
-
+    // Raymarch parameters
+    [Range(0.001f, 0.2f)]
+    public float stepSize = 0.1f;
+    
     public Transform cloudContainer;
     public Shader cloudShader;
+    public Texture3D noiseTexture;
     Material cloudMaterial;
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
@@ -18,6 +22,13 @@ public class CloudRenderer : MonoBehaviour
             containerMax = cloudContainer.position + containerOffset;
         cloudMaterial.SetVector("_ContainerMin", containerMin);
         cloudMaterial.SetVector("_ContainerMax", containerMax);
+
+
+        // Noise Textures
+        cloudMaterial.SetTexture("_NoiseTexture", noiseTexture);
+        
+        // Raymarch parameters
+        cloudMaterial.SetFloat("_StepSize", stepSize);
 
         Graphics.Blit(source, destination, cloudMaterial);
         

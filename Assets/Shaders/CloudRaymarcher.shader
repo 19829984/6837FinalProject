@@ -17,8 +17,12 @@
 
             #include "UnityCG.cginc"
             
+            float _StepSize;
+
             float3 _ContainerMin;
             float3 _ContainerMax;
+            Texture3D<float3> _NoiseTexture;
+            SamplerState samplerNoiseTexture;
 
             struct appdata
             {
@@ -69,18 +73,44 @@
                 return float2(dstToBox, dstInsideBox);
             }
 
+            float sampleDensity(float3 samplePoint){
+                // float3 p = round(frac(samplePoint * .5));
+                // return p.x*p.y*p.z;
+                // return tex3D(_NoiseTexture, samplePoint);
+                return _NoiseTexture.SampleLevel(samplerNoiseTexture, samplePoint, 0);
+            }
+
             sampler2D _MainTex;
 
             fixed4 frag (v2f i) : SV_Target
             {
+                float sampleWeight = _StepSize;
+
                 fixed4 col = tex2D(_MainTex, i.uv);
                 float3 rayOrigin = mul(unity_CameraToWorld, float4(0, 0, 0, 1));
                 float3 rayDir = normalize(i.viewVector);
 
                 float2 intersection = rayBoxDst(_ContainerMin, _ContainerMax, rayOrigin, 1/rayDir);
-                float3 cloudColor = float3(.3, .7, 1.);
-                col.rgb = lerp(cloudColor, col.rgb, exp(-intersection.y));
-                
+                if(intersection.y > 0){
+                    float3 cloudColor = float3(.3, .7, 1.);
+                    float rayDistance = intersection.x;
+                    float maxRayDistance = intersection.y;
+                    float3 rayStep = rayDir*_StepSize;
+
+                    float density = 0;
+                    float3 samplePos = rayOrigin + rayDir*rayDistance;
+    
+                    while(rayDistance < maxRayDistance){
+                        density += sampleDensity(samplePos)*sampleWeight;
+                        // SAMPLE LIGHT @ POINT
+                        
+                        rayDistance += _StepSize;
+                        samplePos += rayStep;
+                    }
+
+                    col.rgb = lerp(cloudColor, col.rgb, exp(-density));
+                }
+
                 return col;
             }
             ENDCG

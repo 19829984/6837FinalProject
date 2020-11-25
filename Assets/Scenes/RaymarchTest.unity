@@ -217,8 +217,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32e931a3e13fb564695f293901856d32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  stepSize: 0.039
   cloudContainer: {fileID: 605154675}
   cloudShader: {fileID: 4800000, guid: b6de8fbff0c2b1d44a739b638d1875a0, type: 3}
+  noiseTexture: {fileID: 11700000, guid: f1486f4e5b2195e4fa9d0fd3725237b3, type: 2}
 --- !u!1 &605154671
 GameObject:
   m_ObjectHideFlags: 0
