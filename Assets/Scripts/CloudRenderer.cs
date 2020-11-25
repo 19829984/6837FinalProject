@@ -11,7 +11,12 @@ public class CloudRenderer : MonoBehaviour
     
     public Transform cloudContainer;
     public Shader cloudShader;
-    public Texture3D noiseTexture;
+    [HideInInspector]
+    public RenderTexture noiseTexture;
+    public Vector3 noiseScale = Vector3.one;
+    public float densityBias = 0;
+
+
     Material cloudMaterial;
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
@@ -26,6 +31,8 @@ public class CloudRenderer : MonoBehaviour
 
         // Noise Textures
         cloudMaterial.SetTexture("_NoiseTexture", noiseTexture);
+        cloudMaterial.SetVector("_NoiseScale", noiseScale);
+        cloudMaterial.SetFloat("_DensityBias", densityBias);
         
         // Raymarch parameters
         cloudMaterial.SetFloat("_StepSize", stepSize);

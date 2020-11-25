@@ -21,8 +21,12 @@
 
             float3 _ContainerMin;
             float3 _ContainerMax;
-            Texture3D<float3> _NoiseTexture;
-            SamplerState samplerNoiseTexture;
+            float3 _NoiseScale;
+
+            float _DensityBias;
+            sampler3D _NoiseTexture;
+            // Texture3D<float3> _NoiseTexture;
+            // SamplerState samplerNoiseTexture;
 
             struct appdata
             {
@@ -76,8 +80,8 @@
             float sampleDensity(float3 samplePoint){
                 // float3 p = round(frac(samplePoint * .5));
                 // return p.x*p.y*p.z;
-                // return tex3D(_NoiseTexture, samplePoint);
-                return _NoiseTexture.SampleLevel(samplerNoiseTexture, samplePoint, 0);
+                return max((1 - tex3D(_NoiseTexture, samplePoint*_NoiseScale)) - _DensityBias, 0);
+                // return _NoiseTexture.SampleLevel(samplerNoiseTexture, samplePoint, 0);
             }
 
             sampler2D _MainTex;
@@ -91,25 +95,54 @@
                 float3 rayDir = normalize(i.viewVector);
 
                 float2 intersection = rayBoxDst(_ContainerMin, _ContainerMax, rayOrigin, 1/rayDir);
-                if(intersection.y > 0){
-                    float3 cloudColor = float3(.3, .7, 1.);
-                    float rayDistance = intersection.x;
-                    float maxRayDistance = intersection.y;
-                    float3 rayStep = rayDir*_StepSize;
+                float dstLimit = min(depth-dstToBox, dstInsideBox);
+                
+                const float stepSize = 11;
 
-                    float density = 0;
-                    float3 samplePos = rayOrigin + rayDir*rayDistance;
-    
-                    while(rayDistance < maxRayDistance){
-                        density += sampleDensity(samplePos)*sampleWeight;
-                        // SAMPLE LIGHT @ POINT
-                        
-                        rayDistance += _StepSize;
-                        samplePos += rayStep;
+                // March through volume:
+                float transmittance = 1;
+                float3 lightEnergy = 0;
+
+                while (dstTravelled < dstLimit) {
+                    rayPos = entryPoint + rayDir * dstTravelled;
+                    float density = sampleDensity(rayPos);
+                    
+                    if (density > 0) {
+                        // float lightTransmittance = lightmarch(rayPos);
+                        // lightEnergy += density * stepSize * transmittance * lightTransmittance * phaseVal;
+                        // transmittance *= exp(-density * stepSize * lightAbsorptionThroughCloud);
+                    
+                        // Exit early if T is close to zero as further samples won't affect the result much
+                        // if (transmittance < 0.01) {
+                        //     break;
+                        // }
                     }
-
-                    col.rgb = lerp(cloudColor, col.rgb, exp(-density));
+                    dstTravelled += stepSize;
                 }
+                // if(intersection.y > 0){
+                //     float3 cloudColor = float3(1, 1, 1);
+                //     float rayDistance = intersection.x;
+                //     float maxRayDistance = intersection.y;
+                //     float3 rayStep = rayDir*_StepSize;
+
+                //     float density = 0;
+                //     float3 samplePos = rayOrigin + rayDir*rayDistance;
+                    
+                //     int numSamples = 100;
+                //     for(int i = 0; i < numSamples; i++){
+                //         density += sampleDensity(samplePos) * sampleWeight;
+                //         // SAMPLE LIGHT @ POINT
+                        
+                //         rayDistance += _StepSize;
+                //         samplePos += rayStep;
+                //         if(rayDistance < maxRayDistance){
+                //             numSamples = i+1;
+                //             break;
+                //         }
+                //     }
+                //     // density /= numSamples;
+                //     col.rgb = lerp(cloudColor, col.rgb, exp(-density));
+                // }
 
                 return col;
             }

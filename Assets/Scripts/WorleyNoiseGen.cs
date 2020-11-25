@@ -15,6 +15,7 @@ public class WorleyNoiseGen : MonoBehaviour
 
     public Shader test_shader;
 
+    [Range(-2, 2)]
     public float frequency;
     public Vector3 offset;
     public Vector3 scale;
@@ -24,6 +25,14 @@ public class WorleyNoiseGen : MonoBehaviour
     private System.Random prng = new System.Random();
     private int TextureSize;
     private int numThreadGroups;
+
+    private Vector3[] worley_points_lv1;
+    private Vector3[] worley_points_lv2;
+    private Vector3[] worley_points_lv3;
+    public bool showNoiseTex = false;
+    public bool generate = true;
+
+    private CloudRenderer cloudRenderer;
 
     private Material mat;
     void Start()
@@ -41,24 +50,43 @@ public class WorleyNoiseGen : MonoBehaviour
 
         TextureSize = rt.width;
         numThreadGroups = Mathf.CeilToInt(TextureSize / 8f);
-
+        worley_points_lv1 = CreateWorleyPoints(prng, WorleyResolutionLv1);
+        worley_points_lv2 = CreateWorleyPoints(prng, WorleyResolutionLv2);
+        worley_points_lv3 = CreateWorleyPoints(prng, WorleyResolutionLv3);
+        cloudRenderer = GetComponent<CloudRenderer>();
+        GenWorley();
     }
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
+        if(generate) GenWorley();
+        
+        if (!showNoiseTex) {
+            Graphics.Blit(source, destination);
+            return;
+        }
+        
+        
+        mat.SetTexture("_NoiseTex", rt);
+        mat.SetVector("_sample_offset", offset);
+        mat.SetVector("_scale", scale);
+        Graphics.Blit(source, destination, mat);
+    }
+
+    void GenWorley(){
         if (mat == null)
         {
             mat = new Material(test_shader);
         }
-        var worley_points_lv1 = CreateWorleyPoints(prng, WorleyResolutionLv1);
+        
         var worley_buffer_lv1 = new ComputeBuffer(worley_points_lv1.Length, sizeof(float) * 3, ComputeBufferType.Structured);
         worley_buffer_lv1.SetData(worley_points_lv1);
 
-        var worley_points_lv2 = CreateWorleyPoints(prng, WorleyResolutionLv2);
+        
         var worley_buffer_lv2 = new ComputeBuffer(worley_points_lv2.Length, sizeof(float) * 3, ComputeBufferType.Structured);
         worley_buffer_lv2.SetData(worley_points_lv2);
 
-        var worley_points_lv3 = CreateWorleyPoints(prng, WorleyResolutionLv3);
+        
         var worley_buffer_lv3 = new ComputeBuffer(worley_points_lv3.Length, sizeof(float) * 3, ComputeBufferType.Structured);
         worley_buffer_lv3.SetData(worley_points_lv3);
 
@@ -88,11 +116,7 @@ public class WorleyNoiseGen : MonoBehaviour
         worleyCompute.Dispatch(1, numThreadGroups, numThreadGroups, numThreadGroups);
 
         minMaxBuffer.Release();
-
-        mat.SetTexture("_NoiseTex", rt);
-        mat.SetVector("_sample_offset", offset);
-        mat.SetVector("_scale", scale);
-        Graphics.Blit(source, destination, mat);
+        cloudRenderer.noiseTexture = rt;
     }
 
     Vector3[] CreateWorleyPoints(System.Random prng, int numCellsPerAxis)
