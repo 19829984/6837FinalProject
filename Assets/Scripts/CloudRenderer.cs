@@ -11,9 +11,10 @@ public class CloudRenderer : MonoBehaviour
     
     public Transform cloudContainer;
     public Shader cloudShader;
-    [HideInInspector]
+    
     public RenderTexture noiseTexture;
     public Vector3 noiseScale = Vector3.one;
+    [Range(0, 1)]
     public float densityBias = 0;
 
 
@@ -21,6 +22,10 @@ public class CloudRenderer : MonoBehaviour
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
+        
+        Camera.current.depthTextureMode = DepthTextureMode.Depth;
+        if (cloudMaterial == null)
+            cloudMaterial = new Material(cloudShader);
         Vector3 containerOffset = cloudContainer.localScale * .5f;
         Vector3
             containerMin = cloudContainer.position - containerOffset,

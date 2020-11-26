@@ -85,65 +85,35 @@
             }
 
             sampler2D _MainTex;
+            sampler2D _CameraDepthTexture;
 
             fixed4 frag (v2f i) : SV_Target
             {
-                float sampleWeight = _StepSize;
+                const float sampleWeight = _StepSize;
 
                 fixed4 col = tex2D(_MainTex, i.uv);
-                float3 rayOrigin = mul(unity_CameraToWorld, float4(0, 0, 0, 1));
-                float3 rayDir = normalize(i.viewVector);
+                const float3 rayOrigin = mul(unity_CameraToWorld, float4(0, 0, 0, 1));
+                const float3 rayDir = normalize(i.viewVector);
 
-                float2 intersection = rayBoxDst(_ContainerMin, _ContainerMax, rayOrigin, 1/rayDir);
-                float dstLimit = min(depth-dstToBox, dstInsideBox);
-                
-                const float stepSize = 11;
+                const float2 intersection = rayBoxDst(_ContainerMin, _ContainerMax, rayOrigin, 1/rayDir);
+                const float dstToBox = intersection.x;
+                const float dstInsideBox = intersection.y;
+                if(dstInsideBox != 0) {
+                    float3 samplePos = rayOrigin + rayDir * dstToBox;
+                    float distanceMarched = 0;
+                    float density = 0;
+                    [loop]
+                    while(distanceMarched < dstInsideBox){
+                        density += sampleDensity(samplePos) * _StepSize;
 
-                // March through volume:
-                float transmittance = 1;
-                float3 lightEnergy = 0;
-
-                while (dstTravelled < dstLimit) {
-                    rayPos = entryPoint + rayDir * dstTravelled;
-                    float density = sampleDensity(rayPos);
-                    
-                    if (density > 0) {
-                        // float lightTransmittance = lightmarch(rayPos);
-                        // lightEnergy += density * stepSize * transmittance * lightTransmittance * phaseVal;
-                        // transmittance *= exp(-density * stepSize * lightAbsorptionThroughCloud);
-                    
-                        // Exit early if T is close to zero as further samples won't affect the result much
-                        // if (transmittance < 0.01) {
-                        //     break;
-                        // }
+                        samplePos += rayDir * _StepSize;
+                        distanceMarched += _StepSize;
                     }
-                    dstTravelled += stepSize;
+
+                    col.rgb = lerp(float3(.9, .9, 1), col.rgb, exp(-density));
                 }
-                // if(intersection.y > 0){
-                //     float3 cloudColor = float3(1, 1, 1);
-                //     float rayDistance = intersection.x;
-                //     float maxRayDistance = intersection.y;
-                //     float3 rayStep = rayDir*_StepSize;
-
-                //     float density = 0;
-                //     float3 samplePos = rayOrigin + rayDir*rayDistance;
-                    
-                //     int numSamples = 100;
-                //     for(int i = 0; i < numSamples; i++){
-                //         density += sampleDensity(samplePos) * sampleWeight;
-                //         // SAMPLE LIGHT @ POINT
-                        
-                //         rayDistance += _StepSize;
-                //         samplePos += rayStep;
-                //         if(rayDistance < maxRayDistance){
-                //             numSamples = i+1;
-                //             break;
-                //         }
-                //     }
-                //     // density /= numSamples;
-                //     col.rgb = lerp(cloudColor, col.rgb, exp(-density));
-                // }
-
+                
+                // return LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv)) * length(i.viewVector);
                 return col;
             }
             ENDCG
