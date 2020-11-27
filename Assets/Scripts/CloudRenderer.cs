@@ -8,21 +8,24 @@ public class CloudRenderer : MonoBehaviour
     // Raymarch parameters
     [Range(0.001f, 0.2f)]
     public float stepSize = 0.1f;
-    
+
     public Transform cloudContainer;
     public Shader cloudShader;
-    
+
     public RenderTexture noiseTexture;
-    public Vector3 noiseScale = Vector3.one;
+    //public Vector3 noiseScale = Vector3.one;
+    public float noiseScale = 1;
+    public Vector3 noiseOffset;
     [Range(0, 1)]
     public float densityBias = 0;
-
+    public float densityMultiplier = 1;
+    public int NumLightSteps = 1;
+    public float DarknessThreshold = 0;
 
     Material cloudMaterial;
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-        
         Camera.current.depthTextureMode = DepthTextureMode.Depth;
         if (cloudMaterial == null)
             cloudMaterial = new Material(cloudShader);
@@ -33,17 +36,22 @@ public class CloudRenderer : MonoBehaviour
         cloudMaterial.SetVector("_ContainerMin", containerMin);
         cloudMaterial.SetVector("_ContainerMax", containerMax);
 
-
         // Noise Textures
         cloudMaterial.SetTexture("_NoiseTexture", noiseTexture);
-        cloudMaterial.SetVector("_NoiseScale", noiseScale);
+        cloudMaterial.SetVector("_NoiseScale", new Vector3(noiseScale, noiseScale, noiseScale)/100);
+        cloudMaterial.SetVector("_NoiseOffset", noiseOffset / 100);
         cloudMaterial.SetFloat("_DensityBias", densityBias);
-        
+        cloudMaterial.SetFloat("_DensityMultiplier", densityMultiplier);
+
         // Raymarch parameters
         cloudMaterial.SetFloat("_StepSize", stepSize);
 
+        // Light parameters
+        cloudMaterial.SetInt("_NumLightSteps", NumLightSteps);
+        cloudMaterial.SetFloat("_DarknessThreshold", DarknessThreshold);
+
         Graphics.Blit(source, destination, cloudMaterial);
-        
+
     }
 
     // Start is called before the first frame update
@@ -55,6 +63,6 @@ public class CloudRenderer : MonoBehaviour
     // Update is called once per frame
     // void Update()
     // {
-        
+
     // }
 }

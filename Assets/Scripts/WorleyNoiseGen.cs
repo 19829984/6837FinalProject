@@ -4,11 +4,15 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+[ExecuteInEditMode, ImageEffectAllowedInSceneView]
 public class WorleyNoiseGen : MonoBehaviour
 {
     // Start is called before the first frame update
+    [Range(1, 100)]
     public int WorleyResolutionLv1 = 1;
+    [Range(1, 100)]
     public int WorleyResolutionLv2 = 1;
+    [Range(1, 100)]
     public int WorleyResolutionLv3 = 1;
 
     private int oldWorleyResolutionLv1 = 1;

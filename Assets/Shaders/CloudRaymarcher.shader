@@ -16,18 +16,8 @@
             #pragma fragment frag
 
             #include "UnityCG.cginc"
+            #include "UnityLightingCommon.cginc"
             
-            float _StepSize;
-
-            float3 _ContainerMin;
-            float3 _ContainerMax;
-            float3 _NoiseScale;
-
-            float _DensityBias;
-            sampler3D _NoiseTexture;
-            // Texture3D<float3> _NoiseTexture;
-            // SamplerState samplerNoiseTexture;
-
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -41,6 +31,22 @@
                 float3 viewVector : TEXCOORD1;
             };
 
+            float3 _ContainerMin;
+            float3 _ContainerMax;
+            float3 _NoiseScale;
+            float3 _NoiseOffset;
+
+            float _DensityBias;
+            float _DensityMultiplier;
+            float _StepSize;
+            float _DarknessThreshold;
+            
+            int _NumLightSteps;
+
+            sampler3D _NoiseTexture;
+            sampler2D _MainTex;
+            sampler2D _CameraDepthTexture;
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -51,6 +57,22 @@
                     float4(o.uv * 2. - 1., 0.0f, -1.0f)).xyz;
                 o.viewVector = mul(unity_CameraToWorld, float4(viewVectorCamera, 0.0f)).xyz;
                 return o;
+            }
+
+            float3 vecToLight(float3 lightPos, float3 samplePos) {
+                return lightPos - samplePos;
+            }
+
+            float distToLight(float3 lightPos, float3 samplePos) {
+                return length(vecToLight(lightPos, samplePos));
+            }
+
+            float3 dirToLight(float3 lightPos, float3 samplePos) {
+                return normalize(vecToLight(lightPos, samplePos));
+            }
+
+            float3 getLightIntensity(float3 lightPos, float3 lightIntensity, float lightAttenuation, float3 samplePos) {
+                return lightIntensity / (lightAttenuation * pow(distToLight(lightPos, samplePos), 2));
             }
 
             // Returns (dstToBox, dstInsideBox). If ray misses box, dstInsideBox will be zero
@@ -80,12 +102,31 @@
             float sampleDensity(float3 samplePoint){
                 // float3 p = round(frac(samplePoint * .5));
                 // return p.x*p.y*p.z;
-                return max((1 - tex3D(_NoiseTexture, samplePoint*_NoiseScale)) - _DensityBias, 0);
+                return max((1 - tex3D(_NoiseTexture, (samplePoint*_NoiseScale) + _NoiseOffset)) - _DensityBias, 0);
                 // return _NoiseTexture.SampleLevel(samplerNoiseTexture, samplePoint, 0);
             }
 
-            sampler2D _MainTex;
-            sampler2D _CameraDepthTexture;
+            float beerPowder(float density) {
+                return 2 * exp(-density) * (1 - exp(-density * 2));
+            }
+
+            float calcLight(float3 samplePos) {
+                float3 dirTLight = _WorldSpaceLightPos0.xyz;
+                float dstInsideBox = rayBoxDst(_ContainerMin, _ContainerMax, samplePos, 1 / dirTLight).y;
+
+                float stepSize = dstInsideBox / _NumLightSteps;
+                float totalDensity = 0;
+
+                float3 current_pos = samplePos;
+                [loop]
+                for (int i = 0; i < _NumLightSteps; i++) {
+                    current_pos += stepSize * dirTLight;
+                    totalDensity = max(0, sampleDensity(current_pos) * stepSize);
+                }
+
+                float transmittance = beerPowder(totalDensity);
+                return _DarknessThreshold + transmittance * (1 - _DarknessThreshold);
+            }
 
             fixed4 frag (v2f i) : SV_Target
             {
@@ -94,7 +135,7 @@
                 fixed4 col = tex2D(_MainTex, i.uv);
                 const float3 rayOrigin = mul(unity_CameraToWorld, float4(0, 0, 0, 1));
                 const float3 rayDir = normalize(i.viewVector);
-
+                //TODO: User z buffer to draw stuff correctly
                 const float2 intersection = rayBoxDst(_ContainerMin, _ContainerMax, rayOrigin, 1/rayDir);
                 const float dstToBox = intersection.x;
                 const float dstInsideBox = intersection.y;
@@ -104,8 +145,13 @@
                     float density = 0;
                     [loop]
                     while(distanceMarched < dstInsideBox){
-                        density += sampleDensity(samplePos) * _StepSize;
+                        float temp_density = sampleDensity(samplePos) * _StepSize * _DensityMultiplier;
+                        if (temp_density > 0) { //Ray travels into clouds
+                            float light_transmittance = calcLight(samplePos); //TODO: Figure out how to use this
+                            density += temp_density;
+                            //density += length(getLightIntensity(_WorldSpaceLightPos0.xyz, _LightColor0.rgb, 1, samplePos));
 
+                        }
                         samplePos += rayDir * _StepSize;
                         distanceMarched += _StepSize;
                     }
