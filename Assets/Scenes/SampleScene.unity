@@ -145,8 +145,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 93308576}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 100, y: 52.9, z: 100}
+  m_LocalPosition: {x: 0, y: 63.3, z: 0}
+  m_LocalScale: {x: 200, y: 10, z: 200}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
@@ -236,13 +236,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
-  m_LocalRotation: {x: 0.6855856, y: -0.21201022, z: 0.6963911, w: -0.0079657305}
+  m_LocalRotation: {x: 0.2280716, y: 0.52113616, z: -0.20861956, w: 0.79553646}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 16.521, y: -268.21, z: -161.65201}
+  m_LocalEulerAnglesHint: {x: 35.473003, y: -655.671, z: -6.643}
 --- !u!1 &954954190
 GameObject:
   m_ObjectHideFlags: 0
@@ -400,8 +400,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: -0.25528035, y: -0.6652382, z: 0.2607047, w: -0.651401}
-  m_LocalPosition: {x: -32.046158, y: 19.144913, z: 0.49236584}
+  m_LocalRotation: {x: -0.034752488, y: -0.662878, z: -0.030869275, w: 0.7472832}
+  m_LocalPosition: {x: 122.24579, y: -10.217283, z: -13.803143}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -419,12 +419,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b0ac920bf36a0942a33396d99a6adf0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WorleyResolutionLv1: 7
-  WorleyResolutionLv2: 15
-  WorleyResolutionLv3: 26
+  WorleyResolutionLv1: 6
+  WorleyResolutionLv2: 19
+  WorleyResolutionLv3: 37
   worleyCompute: {fileID: 7200000, guid: bdac5e038b9f3df428ac4e70a733e7e3, type: 3}
   test_shader: {fileID: 4800000, guid: 0b060c303efdec9458c6111efffd26a1, type: 3}
-  frequency: 1.14
+  frequency: 1.1
   offset: {x: 0, y: 0, z: 0}
   scale: {x: 1, y: 1, z: 1}
   showNoiseTex: 0
@@ -440,17 +440,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32e931a3e13fb564695f293901856d32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stepSize: 0.0947
+  stepSize: 0.2
   cloudContainer: {fileID: 93308580}
   cloudShader: {fileID: 4800000, guid: b6de8fbff0c2b1d44a739b638d1875a0, type: 3}
-  noiseTexture: {fileID: 1075126237}
-  noiseScale: 0.59
+  noiseTexture: {fileID: 2081369859}
+  noiseScale: 0.32
   noiseOffset: {x: 0, y: 0, z: 0}
-  densityBias: 0.521
+  densityBias: 0.516
   densityMultiplier: 1
-  NumLightSteps: 1
+  NumLightSteps: 11
   DarknessThreshold: 0
---- !u!84 &1075126237
+  lightColor: {r: 1, g: 1, b: 1, a: 1}
+  lightAbsorption: 1
+  phase: {x: 1, y: 1, z: 1, w: 1}
+--- !u!84 &2081369859
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

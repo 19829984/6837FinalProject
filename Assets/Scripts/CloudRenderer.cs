@@ -21,6 +21,9 @@ public class CloudRenderer : MonoBehaviour
     public float densityMultiplier = 1;
     public int NumLightSteps = 1;
     public float DarknessThreshold = 0;
+    public Color lightColor = new Color(1,1,1);
+    public float lightAbsorption = 1;
+    public Vector4 phase;
 
     Material cloudMaterial;
 
@@ -49,6 +52,10 @@ public class CloudRenderer : MonoBehaviour
         // Light parameters
         cloudMaterial.SetInt("_NumLightSteps", NumLightSteps);
         cloudMaterial.SetFloat("_DarknessThreshold", DarknessThreshold);
+
+        //Others
+        cloudMaterial.SetVector("_LightColor", lightColor);
+        cloudMaterial.SetFloat("_LightAbsorption", lightAbsorption);
 
         Graphics.Blit(source, destination, cloudMaterial);
 
