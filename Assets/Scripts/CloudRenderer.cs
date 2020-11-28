@@ -56,6 +56,7 @@ public class CloudRenderer : MonoBehaviour
         //Others
         cloudMaterial.SetVector("_LightColor", lightColor);
         cloudMaterial.SetFloat("_LightAbsorption", lightAbsorption);
+        cloudMaterial.SetVector("_PhaseParams", phase);
 
         Graphics.Blit(source, destination, cloudMaterial);
 

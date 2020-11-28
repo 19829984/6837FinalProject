@@ -36,7 +36,7 @@
             float3 _NoiseScale;
             float3 _NoiseOffset;
             float3 _LightColor;
-            //float4 phaseParams;
+            float4 _PhaseParams;
 
             float _DensityBias;
             float _DensityMultiplier;
@@ -132,16 +132,16 @@
             }
 
             //// Henyey-Greenstein
-            //float hg(float a, float g) {
-            //    float g2 = g * g;
-            //    return (1 - g2) / (4 * 3.1415 * pow(1 + g2 - 2 * g * (a), 1.5));
-            //}
+            float hg(float cosAngle, float g) {
+               float g2 = g * g;
+               return (1 - g2) / (4 * 3.1415 * pow(1 + g2 - 2 * g * cosAngle, 1.5));
+            }
 
-            //float phase(float a) {
-            //    float blend = .5;
-            //    float hgBlend = hg(a, phaseParams.x) * (1 - blend) + hg(a, -phaseParams.y) * blend;
-            //    return phaseParams.z + hgBlend * phaseParams.w;
-            //}
+            float phase(float a) {
+               float blend = .5;
+               float hgBlend = hg(a, _PhaseParams.x) * (1 - blend) + hg(a, -_PhaseParams.y) * blend;
+               return _PhaseParams.z + hgBlend * _PhaseParams.w;
+            }
 
             fixed4 frag (v2f i) : SV_Target
             {
@@ -152,8 +152,8 @@
                 const float3 rayOrigin = mul(unity_CameraToWorld, float4(0, 0, 0, 1));
                 const float3 rayDir = normalize(i.viewVector);
 
-                /*float cosAngle = dot(rayDir, _WorldSpaceLightPos0.xyz);
-                float phaseVal = phase(cosAngle);*/
+                float cosAngle = dot(rayDir, _WorldSpaceLightPos0.xyz);
+                float phaseVal = phase(cosAngle);
 
 
                 //TODO: User z buffer to draw stuff correctly
@@ -164,27 +164,34 @@
                     float3 samplePos = rayOrigin + rayDir * dstToBox;
                     float distanceMarched = 0;
                     float transmittance = 1;
+                    float powderTransmittance = 1.;
                     //float density = 0;
                     float3 light_val = 0;
+                    float totalMass = 0;
                     [loop]
                     while(distanceMarched < dstInsideBox){
                         float temp_density = sampleDensity(samplePos);
                         if (temp_density > 0) { //Ray travels into clouds
                             float light_transmittance = calcLight(samplePos);
-                            light_val += transmittance * light_transmittance * temp_density * _StepSize;
-                            transmittance *= exp(-temp_density *_StepSize * _DensityMultiplier);
+                            light_val += transmittance * light_transmittance * temp_density * _StepSize * phaseVal;
+                            float sampleMass = temp_density *_StepSize * _DensityMultiplier;
+                            totalMass += sampleMass;
+                            float beersTransmittance = exp(-sampleMass);
+                            float powderTransmittance = 1. - exp(-2 * temp_density * _StepSize * _DensityMultiplier);
+                            transmittance *= 1. - (beersTransmittance * powderTransmittance);
                             if (transmittance < 0.01) {
                                 break;
                             }
                             //density += length(getLightIntensity(_WorldSpaceLightPos0.xyz, _LightColor0.rgb, 1, samplePos));
-
                         }
                         samplePos += rayDir * _StepSize;
                         distanceMarched += _StepSize;
                     }
                     float3 backgroundCol = tex2D(_MainTex, i.uv);
                     float3 cloudCol = _LightColor * light_val;
-                    col = float4(backgroundCol * transmittance + cloudCol,0);
+                    float totalTransmittance = transmittance;//transmittance * 2 * (1.- powderTransmittance);
+                    // if(totalTransmittance < .01) totalTransmittance
+                    col = float4(backgroundCol * totalTransmittance + cloudCol,0);
                     //col.rgb = lerp(float3(.9, .9, 1), col.rgb, exp(-density));
                 }
                 
