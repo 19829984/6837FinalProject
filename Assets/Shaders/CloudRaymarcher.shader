@@ -43,6 +43,8 @@
             float _StepSize;
             float _DarknessThreshold;
             float _LightAbsorption; 
+            float _BeerPowderScaler;
+            float _BeerPowderPower;
             
             int _NumLightSteps;
 
@@ -110,7 +112,7 @@
             }
 
             float beerPowder(float density) {
-                return 2 * exp(-density) * (1 - exp(-density * 2));
+                return _BeerPowderScaler * exp(-density) * (1 - exp(-density * _BeerPowderPower));
             }
 
             float calcLight(float3 samplePos) {
@@ -127,7 +129,7 @@
                     totalDensity += max(0, sampleDensity(current_pos) * stepSize);
                 }
 
-                float transmittance = exp(-totalDensity * _LightAbsorption); //beerPowder(totalDensity)
+                float transmittance = beerPowder(totalDensity * _LightAbsorption); //beerPowder(totalDensity)
                 return _DarknessThreshold + transmittance * (1 - _DarknessThreshold);
             }
 
@@ -155,19 +157,17 @@
                 float cosAngle = dot(rayDir, _WorldSpaceLightPos0.xyz);
                 float phaseVal = phase(cosAngle);
 
+                float depth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv)) * length(i.viewVector);
 
-                //TODO: User z buffer to draw stuff correctly
+
                 const float2 intersection = rayBoxDst(_ContainerMin, _ContainerMax, rayOrigin, 1/rayDir);
                 const float dstToBox = intersection.x;
-                const float dstInsideBox = intersection.y;
-                if(dstInsideBox != 0) {
+                const float dstInsideBox = min(intersection.y, depth-dstToBox);
+                if(dstInsideBox > 0) {
                     float3 samplePos = rayOrigin + rayDir * dstToBox;
                     float distanceMarched = 0;
                     float transmittance = 1;
-                    float powderTransmittance = 1.;
-                    //float density = 0;
                     float3 light_val = 0;
-                    float totalMass = 0;
                     [loop]
                     while(distanceMarched < dstInsideBox){
                         float temp_density = sampleDensity(samplePos);
@@ -175,10 +175,8 @@
                             float light_transmittance = calcLight(samplePos);
                             light_val += transmittance * light_transmittance * temp_density * _StepSize * phaseVal;
                             float sampleMass = temp_density *_StepSize * _DensityMultiplier;
-                            totalMass += sampleMass;
                             float beersTransmittance = exp(-sampleMass);
-                            float powderTransmittance = 1. - exp(-2 * temp_density * _StepSize * _DensityMultiplier);
-                            transmittance *= 1. - (beersTransmittance * powderTransmittance);
+                            transmittance *= beersTransmittance;//(beersTransmittance * powderTransmittance);
                             if (transmittance < 0.01) {
                                 break;
                             }
@@ -189,13 +187,9 @@
                     }
                     float3 backgroundCol = tex2D(_MainTex, i.uv);
                     float3 cloudCol = _LightColor * light_val;
-                    float totalTransmittance = transmittance;//transmittance * 2 * (1.- powderTransmittance);
-                    // if(totalTransmittance < .01) totalTransmittance
-                    col = float4(backgroundCol * totalTransmittance + cloudCol,0);
-                    //col.rgb = lerp(float3(.9, .9, 1), col.rgb, exp(-density));
+                    col = float4(backgroundCol * transmittance + cloudCol,0);
                 }
                 
-                // return LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv)) * length(i.viewVector);
                 return col;
             }
             ENDCG

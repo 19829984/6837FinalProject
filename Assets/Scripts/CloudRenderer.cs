@@ -23,6 +23,8 @@ public class CloudRenderer : MonoBehaviour
     public float DarknessThreshold = 0;
     public Color lightColor = new Color(1,1,1);
     public float lightAbsorption = 1;
+    public float BeerPowderScaler = 2;
+    public float BeerPowderPower = 2;
     public Vector4 phase;
 
     Material cloudMaterial;
@@ -52,6 +54,8 @@ public class CloudRenderer : MonoBehaviour
         // Light parameters
         cloudMaterial.SetInt("_NumLightSteps", NumLightSteps);
         cloudMaterial.SetFloat("_DarknessThreshold", DarknessThreshold);
+        cloudMaterial.SetFloat("_BeerPowderScaler", BeerPowderScaler);
+        cloudMaterial.SetFloat("_BeerPowderPower", BeerPowderPower);
 
         //Others
         cloudMaterial.SetVector("_LightColor", lightColor);
