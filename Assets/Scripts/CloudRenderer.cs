@@ -6,7 +6,7 @@ using UnityEngine;
 public class CloudRenderer : MonoBehaviour
 {
     // Raymarch parameters
-    [Range(0.001f, 0.2f)]
+    
     public float stepSize = 0.1f;
 
     public Transform cloudContainer;

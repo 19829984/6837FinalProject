@@ -112,7 +112,7 @@
             }
 
             float beerPowder(float density) {
-                return _BeerPowderScaler * exp(-density) * (1 - exp(-density * _BeerPowderPower));
+                return _BeerPowderScaler * exp(-density * _BeerPowderPower) * (1 - exp(-density * 2 * _BeerPowderPower));
             }
 
             float calcLight(float3 samplePos) {
