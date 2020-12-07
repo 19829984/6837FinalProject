@@ -166,7 +166,7 @@
                 const float dstToBox = intersection.x;
                 const float dstInsideBox = min(intersection.y, depth-dstToBox);
                 if(dstInsideBox > 0) {
-                    float randomOffset = tex2D(_BlueNoise, i.uv + _Time) * _BlueNoiseStrength;
+                    float randomOffset = tex2D(_BlueNoise, i.uv * _Time) * _BlueNoiseStrength;
                     float3 samplePos = rayOrigin + rayDir * dstToBox;
                     float distanceMarched = randomOffset;
                     float transmittance = 1;

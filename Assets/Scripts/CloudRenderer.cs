@@ -17,7 +17,7 @@ public class CloudRenderer : MonoBehaviour
     public RenderTexture noiseTexture;
     //public Vector3 noiseScale = Vector3.one;
     public float noiseScale = 1;
-    public Vector3 noiseOffset;
+    public Vector3 cloudMovement;
     [Range(0, 1)]
     public float densityBias = 0;
     public float densityMultiplier = 1;
@@ -48,7 +48,7 @@ public class CloudRenderer : MonoBehaviour
         // Noise Textures
         cloudMaterial.SetTexture("_NoiseTexture", noiseTexture);
         cloudMaterial.SetVector("_NoiseScale", new Vector3(noiseScale, noiseScale, noiseScale)/100);
-        cloudMaterial.SetVector("_NoiseOffset", noiseOffset / 100);
+        cloudMaterial.SetVector("_NoiseOffset", (cloudMovement * (Time.fixedTime%100)) / 100);
         cloudMaterial.SetFloat("_DensityBias", densityBias);
         cloudMaterial.SetFloat("_DensityMultiplier", densityMultiplier);
         cloudMaterial.SetTexture("_BlueNoise", blueNoise);
