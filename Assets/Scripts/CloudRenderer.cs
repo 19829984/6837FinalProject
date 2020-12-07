@@ -30,6 +30,9 @@ public class CloudRenderer : MonoBehaviour
     public float rainAbsorption = 1;
     public Vector4 phase;
 
+    [Range(0.01f, 100f)]
+    public float edgeFadeOut;
+
     Material cloudMaterial;
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
@@ -68,6 +71,7 @@ public class CloudRenderer : MonoBehaviour
         cloudMaterial.SetVector("_LightColor", lightColor);
         cloudMaterial.SetFloat("_LightAbsorption", lightAbsorption);
         cloudMaterial.SetVector("_PhaseParams", phase);
+        cloudMaterial.SetFloat("_DensityFadeOffDistance", edgeFadeOut);
 
         Graphics.Blit(source, destination, cloudMaterial);
     }

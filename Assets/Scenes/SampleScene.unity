@@ -146,7 +146,7 @@ Transform:
   m_GameObject: {fileID: 93308576}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -79.6, y: 133, z: -44}
-  m_LocalScale: {x: 1000, y: 265.5, z: 1000}
+  m_LocalScale: {x: 1000, y: 200, z: 1000}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
@@ -539,7 +539,7 @@ MonoBehaviour:
   cloudShader: {fileID: 4800000, guid: b6de8fbff0c2b1d44a739b638d1875a0, type: 3}
   blueNoise: {fileID: 2800000, guid: 7933088854cefc44c9e7f5bbf91bfb18, type: 3}
   blueNoiseStrength: 6.1
-  noiseTexture: {fileID: 1746135302}
+  noiseTexture: {fileID: 1589683035}
   noiseScale: 0.12
   noiseOffset: {x: 0, y: 0, z: 0}
   densityBias: 0.596
@@ -552,6 +552,7 @@ MonoBehaviour:
   BeerPowderPower: 1
   rainAbsorption: 1
   phase: {x: 1, y: -0.42, z: 1.14, w: 1.18}
+  edgeFadeOut: 100
 --- !u!114 &963194231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -612,7 +613,7 @@ MonoBehaviour:
   m_BeforeTransparentBundles: []
   m_BeforeStackBundles: []
   m_AfterStackBundles: []
---- !u!84 &1746135302
+--- !u!84 &1589683035
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

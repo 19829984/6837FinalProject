@@ -47,6 +47,8 @@
             float _BeerPowderPower;
             float _BlueNoiseStrength;
             float _RainAbsorption;
+
+            float _DensityFadeOffDistance;
             
             int _NumLightSteps;
 
@@ -110,8 +112,16 @@
             float sampleDensity(float3 samplePoint){
                 // float3 p = round(frac(samplePoint * .5));
                 // return p.x*p.y*p.z;
-                return (1 - tex3D(_NoiseTexture, (samplePoint*_NoiseScale) + _NoiseOffset)) - _DensityBias;
-                // return _NoiseTexture.SampleLevel(samplerNoiseTexture, samplePoint, 0);
+                float rawDensity = (1 - tex3D(_NoiseTexture, (samplePoint*_NoiseScale) + _NoiseOffset)) - _DensityBias;
+                float3
+                    minDist = saturate((samplePoint - _ContainerMin)/_DensityFadeOffDistance),
+                    maxDist = saturate((_ContainerMax - samplePoint)/_DensityFadeOffDistance);
+                float fadeOut = saturate(
+                    min(
+                        min(minDist.x, min(minDist.y, minDist.z)),
+                        min(maxDist.x, min(maxDist.y, maxDist.z))
+                    ));
+                return rawDensity * fadeOut;
             }
 
             float beerPowder(float density) {
