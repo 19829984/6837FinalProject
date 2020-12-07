@@ -45,12 +45,15 @@
             float _LightAbsorption; 
             float _BeerPowderScaler;
             float _BeerPowderPower;
+            float _BlueNoiseStrength;
+            float _RainAbsorption;
             
             int _NumLightSteps;
 
             sampler3D _NoiseTexture;
             sampler2D _MainTex;
             sampler2D _CameraDepthTexture;
+            sampler2D _BlueNoise;
 
             v2f vert (appdata v)
             {
@@ -112,7 +115,7 @@
             }
 
             float beerPowder(float density) {
-                return _BeerPowderScaler * exp(-density * _BeerPowderPower) * (1 - exp(-density * 2 * _BeerPowderPower));
+                return _BeerPowderScaler * exp(-density * _BeerPowderPower * _RainAbsorption) * (1 - exp(-density * 2 * _BeerPowderPower));
             }
 
             float calcLight(float3 samplePos) {
@@ -159,13 +162,13 @@
 
                 float depth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv)) * length(i.viewVector);
 
-
                 const float2 intersection = rayBoxDst(_ContainerMin, _ContainerMax, rayOrigin, 1/rayDir);
                 const float dstToBox = intersection.x;
                 const float dstInsideBox = min(intersection.y, depth-dstToBox);
                 if(dstInsideBox > 0) {
+                    float randomOffset = tex2D(_BlueNoise, i.uv + _Time) * _BlueNoiseStrength;
                     float3 samplePos = rayOrigin + rayDir * dstToBox;
-                    float distanceMarched = 0;
+                    float distanceMarched = randomOffset;
                     float transmittance = 1;
                     float3 light_val = 0;
                     [loop]

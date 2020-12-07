@@ -11,7 +11,9 @@ public class CloudRenderer : MonoBehaviour
 
     public Transform cloudContainer;
     public Shader cloudShader;
-
+    public Texture2D blueNoise;
+    public float blueNoiseStrength;
+    [HideInInspector]
     public RenderTexture noiseTexture;
     //public Vector3 noiseScale = Vector3.one;
     public float noiseScale = 1;
@@ -25,12 +27,14 @@ public class CloudRenderer : MonoBehaviour
     public float lightAbsorption = 1;
     public float BeerPowderScaler = 2;
     public float BeerPowderPower = 2;
+    public float rainAbsorption = 1;
     public Vector4 phase;
 
     Material cloudMaterial;
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
+        stepSize = Mathf.Max(0.05f, stepSize);
         Camera.current.depthTextureMode = DepthTextureMode.Depth;
         if (cloudMaterial == null)
             cloudMaterial = new Material(cloudShader);
@@ -47,6 +51,8 @@ public class CloudRenderer : MonoBehaviour
         cloudMaterial.SetVector("_NoiseOffset", noiseOffset / 100);
         cloudMaterial.SetFloat("_DensityBias", densityBias);
         cloudMaterial.SetFloat("_DensityMultiplier", densityMultiplier);
+        cloudMaterial.SetTexture("_BlueNoise", blueNoise);
+        cloudMaterial.SetFloat("_BlueNoiseStrength", blueNoiseStrength);
 
         // Raymarch parameters
         cloudMaterial.SetFloat("_StepSize", stepSize);
@@ -56,6 +62,7 @@ public class CloudRenderer : MonoBehaviour
         cloudMaterial.SetFloat("_DarknessThreshold", DarknessThreshold);
         cloudMaterial.SetFloat("_BeerPowderScaler", BeerPowderScaler);
         cloudMaterial.SetFloat("_BeerPowderPower", BeerPowderPower);
+        cloudMaterial.SetFloat("_RainAbsorption", rainAbsorption);
 
         //Others
         cloudMaterial.SetVector("_LightColor", lightColor);
@@ -63,7 +70,6 @@ public class CloudRenderer : MonoBehaviour
         cloudMaterial.SetVector("_PhaseParams", phase);
 
         Graphics.Blit(source, destination, cloudMaterial);
-
     }
 
     // Start is called before the first frame update
