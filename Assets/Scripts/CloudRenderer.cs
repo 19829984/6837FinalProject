@@ -15,12 +15,20 @@ public class CloudRenderer : MonoBehaviour
     public float blueNoiseStrength;
     [HideInInspector]
     public RenderTexture noiseTexture;
-    //public Vector3 noiseScale = Vector3.one;
+    [HideInInspector]
+    public Texture2D perlinTexture;
+    
     public float noiseScale = 1;
     public Vector3 cloudMovement;
     [Range(0, 1)]
     public float densityBias = 0;
     public float densityMultiplier = 1;
+    public float perlinScale = 1;
+    public Vector3 perlinOffset;
+    public float perlinMultiplier = 1;
+    [Range(0, 1)]
+    public float perlinBias;
+
     public int NumLightSteps = 1;
     public float DarknessThreshold = 0;
     public Color lightColor = new Color(1,1,1);
@@ -56,6 +64,17 @@ public class CloudRenderer : MonoBehaviour
         cloudMaterial.SetFloat("_DensityMultiplier", densityMultiplier);
         cloudMaterial.SetTexture("_BlueNoise", blueNoise);
         cloudMaterial.SetFloat("_BlueNoiseStrength", blueNoiseStrength);
+
+
+        cloudMaterial.SetTexture("_PerlinNoise", perlinTexture);
+        cloudMaterial.SetVector("_PerlinScale", new Vector3(perlinScale, perlinScale, perlinScale));
+        cloudMaterial.SetVector("_PerlinOffset", perlinOffset);
+        cloudMaterial.SetFloat("_PerlinBias", perlinBias);
+        cloudMaterial.SetFloat("_PerlinMultiplier", perlinMultiplier);
+        // float3 _PerlinScale;
+        // float3 _PerlinOffset;
+        // float _DensityMultiplier;
+        // float _PerlinMultiplier;
 
         // Raymarch parameters
         cloudMaterial.SetFloat("_StepSize", stepSize);
