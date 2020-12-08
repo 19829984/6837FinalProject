@@ -35,12 +35,6 @@ public class WorleyNoiseGen : MonoBehaviour
     private int TextureSize;
     private int numThreadGroups;
 
-    [Range(4, 512)]
-    public int perlinTextureResolution = 256;
-    [Range(2, 128)]
-    public int perlinFreq = 50;
-    private Texture2D perlinTexture;
-
     private Vector3[] worley_points_lv1;
     private Vector3[] worley_points_lv2;
     private Vector3[] worley_points_lv3;
@@ -160,25 +154,6 @@ public class WorleyNoiseGen : MonoBehaviour
 
         minMaxBuffer.Release();
         cloudRenderer.noiseTexture = rt;
-
-        // Populate perlin texture
-        // perlinTexture = new Texture2D(perlinTextureResolution, perlinTextureResolution);
-        // Color[] perlinValues = new Color[perlinTextureResolution*perlinTextureResolution];
-        // float coordScalar = ((float) perlinFreq)/perlinTextureResolution;
-
-        // for(int x = 0; x < perlinTextureResolution; x++){
-        //     for(int y = 0; y < perlinTextureResolution; y++){
-        //         // Rescale from -1 to 1 to 0 - 1
-        //         float value = Mathf.PerlinNoise(x*coordScalar, y*coordScalar);
-        //         print(value);
-        //         Color color = new Color(value, value, value);
-        //         int arrayIndex = x + (perlinTextureResolution * y);
-        //         perlinValues[arrayIndex] = color;
-        //     }
-        // }
-        // perlinTexture.SetPixels(perlinValues);
-        // perlinTexture.Apply();
-        // cloudRenderer.perlinTexture = perlinTexture;
     }
 
     Vector3[] CreateWorleyPoints(System.Random prng, int numCellsPerAxis)

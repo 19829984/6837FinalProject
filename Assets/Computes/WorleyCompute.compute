@@ -119,6 +119,6 @@ void CSWorleyNormalize(uint3 id : SV_DispatchThreadID) {
     float minVal = (float)minMaxBuffer[0] / minMaxAccuracy; //Use min and max values recorded from first render to normalize
     float maxVal = (float)minMaxBuffer[1] / minMaxAccuracy;
     float4 normalizedVal = (Result[id] - minVal) / (maxVal - minVal);
-    // normalizedVal.y = snoise((float3) id);
+
     Result[id] = normalizedVal;
 }
