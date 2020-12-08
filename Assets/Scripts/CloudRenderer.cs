@@ -51,7 +51,7 @@ public class CloudRenderer : MonoBehaviour
         // Noise Textures
         cloudMaterial.SetTexture("_NoiseTexture", noiseTexture);
         cloudMaterial.SetVector("_NoiseScale", new Vector3(noiseScale, noiseScale, noiseScale)/100);
-        cloudMaterial.SetVector("_NoiseOffset", (cloudMovement * (Time.fixedTime%100)) / 100);
+        cloudMaterial.SetVector("_NoiseOffset", (cloudMovement * (Time.fixedTime)) / 100);
         cloudMaterial.SetFloat("_DensityBias", densityBias);
         cloudMaterial.SetFloat("_DensityMultiplier", densityMultiplier);
         cloudMaterial.SetTexture("_BlueNoise", blueNoise);
