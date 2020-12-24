@@ -1,4 +1,4 @@
-# Final Project for MIT 6.837 2020 Fall Semester
+# Final Project for MIT 6.837 2020 Fall Semester, by Bowen Wu and Amani Toussaint
 
 Based Primarily on Sebastian Lague's [tutorial](https://www.youtube.com/watch?v=4QOcCGI6xOU&t=617s) on clouds.
 
